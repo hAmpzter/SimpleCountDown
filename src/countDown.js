@@ -1,46 +1,49 @@
+var CountdownIdCounter = 1;
 function Countdown(opt) {
 
     "use strict";
 
-    let options = {
+    var options = {
+        contId: CountdownIdCounter++,
             cont: null,
+        countdown: true,
             endDate: {
                 year: 0,
                 month: 0,
                 day: 0,
                 hour: 0,
                 minute: 0,
-                second: 0,
+                second: 0
             },
             endCallback: null,
             outputFormat: 'year|week|day|hour|minute|second',
             outputTranslation: {
-                year: 'Roky',
-                week: 'Týdny',
-                day: 'Dny',
-                hour: 'Hodin',
-                minute: 'Minut',
-                second: 'Vteřin',
+              year: 'Year',
+              week: 'Week',
+              day: 'Day',
+              hour: 'Hour',
+              minute: 'Minute',
+              second: 'Second',
             }
-        },
+        };
 
-        lastTick = null,
+    var lastTick = null;
 
-        intervalsBySize = [
-            'year', 'week', 'day', 'hour', 'minute', 'second',
-        ],
+    var intervalsBySize = [
+        'year', 'week', 'day', 'hour', 'minute', 'second',
+    ];
 
-        TIMESTAMP_SECOND = 1000,
-        TIMESTAMP_MINUTE = 60 * TIMESTAMP_SECOND,
-        TIMESTAMP_HOUR = 60 * TIMESTAMP_MINUTE,
-        TIMESTAMP_DAY = 24 * TIMESTAMP_HOUR,
-        TIMESTAMP_WEEK = 7 * TIMESTAMP_DAY,
-        TIMESTAMP_YEAR = 365 * TIMESTAMP_DAY,
+    const TIMESTAMP_SECOND = 1000;
+    const TIMESTAMP_MINUTE = 60 * TIMESTAMP_SECOND;
+    const TIMESTAMP_HOUR = 60 * TIMESTAMP_MINUTE;
+    const TIMESTAMP_DAY = 24 * TIMESTAMP_HOUR;
+    const TIMESTAMP_WEEK = 7 * TIMESTAMP_DAY;
+    const TIMESTAMP_YEAR = 365 * TIMESTAMP_DAY;
 
-        elementClassPrefix = 'countDown_',
+    var elementClassPrefix = 'countDown_';
 
-        interval = null,
-        digitConts = {};
+    var interval = null;
+    var digitConts = {};
 
     loadOptions(options, opt);
 
@@ -49,20 +52,20 @@ function Countdown(opt) {
      * @returns {Date}
      */
     function getDate(date) {
-        if (typeof date === 'object') {
+        if ((typeof date === 'undefined' ? 'undefined' : _typeof(date)) === 'object') {
             if (date instanceof Date) {
                 return date;
             } else {
-                let expectedValues = {
+                var expectedValues = {
                     day: 0,
                     month: 0,
                     year: 0,
                     hour: 0,
                     minute: 0,
-                    second: 0,
+                    second: 0
                 };
 
-                for (let i in expectedValues) {
+                for (var i in expectedValues) {
                     if (expectedValues.hasOwnProperty(i) && date.hasOwnProperty(i)) {
                         expectedValues[i] = date[i];
                     }
@@ -70,7 +73,7 @@ function Countdown(opt) {
 
                 return new Date(
                     expectedValues.year,
-                    expectedValues.month > 0 ?expectedValues.month -1 : expectedValues.month,
+                    expectedValues.month > 0 ? expectedValues.month - 1 : expectedValues.month,
                     expectedValues.day,
                     expectedValues.hour,
                     expectedValues.minute,
@@ -88,17 +91,19 @@ function Countdown(opt) {
      * @param {Date} dateObj
      * @return {object}
      */
-    function prepareTimeByOutputFormat(dateObj) {
-        let usedIntervals, output = {}, timeDiff;
+    function prepareTimeByOutputFormat(countdown, dateObj) {
+        var usedIntervals = undefined,
+            output = {},
+            timeDiff = undefined;
 
         usedIntervals = intervalsBySize.filter(function (item) {
             return options.outputFormat.split('|').indexOf(item) !== -1;
         });
 
-        timeDiff = dateObj.getTime() - Date.now();
+        timeDiff = countdown ? dateObj.getTime() - Date.now() : Date.now() - dateObj.getTime();
 
         usedIntervals.forEach(function (item) {
-            let value;
+            var value = undefined;
             if (timeDiff > 0) {
                 switch (item) {
                     case 'year':
@@ -148,19 +153,15 @@ function Countdown(opt) {
     }
 
     function writeData(data) {
-        let code = `<div class="${elementClassPrefix}cont">`, intervalName;
+        var code = `<div class="${elementClassPrefix}cont" id="${elementClassPrefix}_${options.contId}">`,
+            intervalName = undefined;
 
         for (intervalName in data) {
             if (data.hasOwnProperty(intervalName)) {
-                let element = `<div class="${elementClassPrefix}_interval_basic_cont">
-                                       <div class="${getIntervalContCommonClassName()} ${getIntervalContClassName(intervalName)}">`,
-                    intervalDescription = `<div class="${elementClassPrefix}interval_basic_cont_description">
-                                                   ${options.outputTranslation[intervalName]}
-                                               </div>`;
+                var element = `<div class="${elementClassPrefix}_interval_basic_cont"><div class="${getIntervalContCommonClassName()} ${getIntervalContClassName(intervalName)}">`,
+                    intervalDescription = `<div class="${elementClassPrefix}interval_basic_cont_description">${options.outputTranslation[intervalName]}</div>`;
                 data[intervalName].forEach(function (digit, index) {
-                    element += `<div class="${getDigitContCommonClassName()} ${getDigitContClassName(index)}">
-                                        ${getDigitElementString(digit, 0)}
-                                    </div>`;
+                    element += `<div class="${getDigitContCommonClassName()} ${getDigitContClassName(index)}">${getDigitElementString(digit, 0)}</div>`;
                 });
 
                 code += element + '</div>' + intervalDescription + '</div>';
@@ -189,8 +190,8 @@ function Countdown(opt) {
     }
 
     function updateView(data) {
-        for (let intervalName in data) {
-            if (data.hasOwnProperty(intervalName) ) {
+        for (var intervalName in data) {
+            if (data.hasOwnProperty(intervalName)) {
                 data[intervalName].forEach(function (digit, index) {
                     if (lastTick !== null && lastTick[intervalName][index] !== data[intervalName][index]) {
                         getDigitCont(intervalName, index).innerHTML =
@@ -207,7 +208,7 @@ function Countdown(opt) {
         if (!digitConts[`${intervalName}_${index}`]) {
             digitConts[`${intervalName}_${index}`] =
                 document.querySelector(
-                    `.${getIntervalContClassName(intervalName)} .${getDigitContClassName(index)}`
+                    `#${elementClassPrefix}_${options.contId} .${getIntervalContClassName(intervalName)} .${getDigitContClassName(index)}`
                 );
         }
 
@@ -231,9 +232,9 @@ function Countdown(opt) {
     }
 
     function loadOptions(_options, _opt) {
-        for (let i in _options) {
+        for (var i in _options) {
             if (_options.hasOwnProperty(i) && _opt.hasOwnProperty(i)) {
-                if (_options[i] !== null && typeof _options[i] === 'object' && typeof _opt[i] === 'object') {
+                if (_options[i] !== null && _typeof(_options[i]) === 'object' && _typeof(_opt[i]) === 'object') {
                     loadOptions(_options[i], _opt[i]);
                 } else {
                     _options[i] = _opt[i];
@@ -243,20 +244,20 @@ function Countdown(opt) {
     }
 
     function start() {
-        let endDate,
-            endDateData;
+        var endDate = undefined,
+            endDateData = undefined;
 
         fixCompatibility();
 
         endDate = getDate(options.endDate);
 
-        endDateData = prepareTimeByOutputFormat(endDate);
+        endDateData = prepareTimeByOutputFormat(options.countdown, endDate);
 
         writeData(endDateData);
 
         lastTick = endDateData;
 
-        if (endDate.getTime() <= Date.now()) {
+        if (options.countdown && endDate.getTime() <= Date.now()) {
             if (typeof options.endCallback === 'function') {
                 options.endCallback();
             }
@@ -264,7 +265,7 @@ function Countdown(opt) {
             interval = setInterval(
                 function () {
                     updateView(
-                        prepareTimeByOutputFormat(endDate)
+                        prepareTimeByOutputFormat(options.countdown, endDate)
                     );
                 },
                 TIMESTAMP_SECOND
@@ -280,6 +281,6 @@ function Countdown(opt) {
 
     return {
         start: start,
-        stop: stop,
+        stop: stop
     };
 }
